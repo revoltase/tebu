@@ -62,34 +62,34 @@ thead { background: #edf4ef; }
   table { table-layout: fixed; white-space: normal; }
   th:first-child { width: 54%; position: static; }
   td { overflow-wrap: anywhere; }
-  :is(th, td):not(:first-child) { display: none; }
-  [data-year="1"] tr > :nth-child(2),
-  [data-year="2"] tr > :nth-child(3),
-  [data-year="3"] tr > :nth-child(4),
-  [data-year="4"] tr > :nth-child(5) { display: table-cell; }
+  .year-column:not(.selected-year) { display: none; }
 }
 @media (max-width: 450px) {
   .grid { grid-template-columns: 1fr; gap: 12px; }
 }
+.year-controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.year-controls button { min-height: 44px; padding: 8px 14px; border: 1px solid #91a192; border-radius: 8px; background: #fff; color: var(--ink); font: inherit; cursor: pointer; }
+.year-controls button:disabled { opacity: .5; cursor: default; }
+.year-controls button:focus-visible { outline: 3px solid #799d60; outline-offset: 2px; }
 </style>
 </head>
 <body><main>
-<header><h1>Kalkulator bisnis tebu</h1><p>Proyeksi empat tahun untuk satu kebun, dari tanam baru sampai panen keprasan ketiga.</p></header>
-<div class="hero" aria-label="Ringkasan empat tahun">
-<div><span>Surplus usaha 4 tahun</span><strong class="amount" id="profit">—</strong></div>
+<header><h1>Kalkulator bisnis tebu</h1><p>Proyeksi usaha satu kebun dari tanam baru hingga panen keprasan.</p></header>
+<div class="hero" aria-label="Ringkasan proyeksi">
+<div><span>Surplus usaha · <b id="year-count">4</b> tahun</span><strong class="amount" id="profit">—</strong></div>
 <div><span>Total penjualan</span><strong class="amount" id="revenue">—</strong></div>
 <div><span>Total biaya</span><strong class="amount" id="cost">—</strong></div></div>
 <section><h2>Asumsi kebun</h2><p>Tarif tanam baru mengikuti penawaran Rp25 juta/ha. Angka lain adalah contoh simulasi. Isikan harga jual tebu per ton sebelum potongan tebang, muat, dan angkut. Masukkan biaya yang sudah termasuk borongan hanya sekali.</p>
 <label class="area">Luas lahan <small>ha</small><input id="luas" inputmode="decimal" value="1"></label>
-<details open><summary>Tahun 1 · Tanam baru</summary><div class="grid"><label>Hasil panen <small>ton/ha</small><input id="yield0" inputmode="decimal" value="90"></label>
+<div id="year-forms"><details open><summary>Tahun 1 · Tanam baru</summary><div class="grid"><label>Hasil panen <small>ton/ha</small><input id="yield0" inputmode="decimal" value="90"></label>
 <label>Harga jual tebu <small>Rp/ton</small><input id="price0" inputmode="numeric" value="750.000"></label>
 <label>Borongan budidaya <small>Rp/ha</small><input id="grow0" inputmode="numeric" value="25.000.000"></label>
 <label>Tebang, muat, dan angkut <small>Rp/ton</small><input id="haul0" inputmode="numeric" value="150.000"></label>
-<label>Sewa seluruh lahan <small>Rp/tahun, berlaku untuk keempat tahun</small><input id="rent0" inputmode="numeric" value="200.000.000"></label>
+<label>Sewa seluruh lahan <small>Rp/tahun, berlaku untuk semua tahun</small><input id="rent0" inputmode="numeric" value="200.000.000"></label>
 <label>Biaya tambahan <small>Rp/kebun</small><input id="other0" inputmode="numeric" value="0"></label></div></details>
 <details ><summary>Tahun 2 · Keprasan 1</summary><div class="grid"><label>Hasil panen <small>ton/ha</small><input id="yield1" inputmode="decimal" value="85"></label>
 <label>Harga jual tebu <small>Rp/ton</small><input id="price1" inputmode="numeric" value="750.000"></label>
-<label>Borongan kepras <small>Rp/ha, berlaku untuk Tahun 2–4</small><input id="grow1" inputmode="numeric" value="10.000.000"></label>
+<label>Borongan kepras <small>Rp/ha, berlaku untuk semua tahun kepras</small><input id="grow1" inputmode="numeric" value="10.000.000"></label>
 <label>Tebang, muat, dan angkut <small>Rp/ton</small><input id="haul1" inputmode="numeric" value="150.000"></label>
 <label>Sewa seluruh lahan <small>Rp/tahun</small><input id="rent1" readonly inputmode="numeric" value="200.000.000"></label>
 <label>Biaya tambahan <small>Rp/kebun</small><input id="other1" inputmode="numeric" value="0"></label></div></details>
@@ -105,10 +105,11 @@ thead { background: #edf4ef; }
 <label>Tebang, muat, dan angkut <small>Rp/ton</small><input id="haul3" inputmode="numeric" value="150.000"></label>
 <label>Sewa seluruh lahan <small>Rp/tahun</small><input id="rent3" readonly inputmode="numeric" value="200.000.000"></label>
 <label>Biaya tambahan <small>Rp/kebun</small><input id="other3" inputmode="numeric" value="0"></label></div></details>
+</div><div class="year-controls"><button type="button" id="add-year">Tambah tahun kepras</button><button type="button" id="remove-year">Kurangi tahun terakhir</button></div>
 <p role="status" id="notice"></p></section>
 <section><h2>Hasil per tahun</h2><p>Semua nilai rupiah mencakup seluruh luas kebun. Harga impas menunjukkan harga jual per ton yang menutup biaya tahun tersebut.</p>
 <label class="year-picker" for="result-year">Tampilkan hasil tahun<select id="result-year"><option value="1">Tahun 1 · Tanam baru</option><option value="2">Tahun 2 · Keprasan 1</option><option value="3">Tahun 3 · Keprasan 2</option><option value="4">Tahun 4 · Keprasan 3</option></select></label>
-<div class="scroll" id="projection-table" data-year="1" tabindex="0" aria-label="Rincian proyeksi"><table><thead><tr><th scope="col">Komponen</th><th scope="col">Tahun 1</th><th scope="col">Tahun 2</th><th scope="col">Tahun 3</th><th scope="col">Tahun 4</th></tr></thead><tbody id="rows"></tbody></table></div>
+<div class="scroll" id="projection-table" data-year="1" tabindex="0" aria-label="Rincian proyeksi"><table><thead><tr id="year-head"></tr></thead><tbody id="rows"></tbody></table></div>
 </section><footer>Simulasi memakai satu panen per tahun dan luas lahan tetap. Surplus dihitung dari penjualan dikurangi biaya yang diisi. Untuk memasukkan bunga, pajak, atau pengeluaran lain, tambahkan nilainya pada biaya tambahan tahun terkait.</footer>
 </main>
 <script>
@@ -138,21 +139,58 @@ const rows = [
   ["Tebang, muat, angkut","harvest"],["Sewa lahan","rent"],["Biaya tambahan","other"],
   ["Total biaya","cost"],["Surplus / defisit","profit"],["Surplus kumulatif","cumulative"],["Harga impas (Rp/ton)","breakEven"]
 ];
+const yearForms = document.getElementById("year-forms");
+const resultYear = document.getElementById("result-year");
+let yearCount = yearForms.children.length;
+
+function yearLabel(index) {
+  return index === 0 ? "Tanam baru" : "Keprasan " + index;
+}
+
+function resizeProjection(count) {
+  const index = count - 1;
+  if (count > yearForms.children.length) {
+    const previous = yearForms.lastElementChild;
+    const next = previous.cloneNode(true);
+    next.open = false;
+    next.querySelector("summary").textContent = "Tahun " + count + " · " + yearLabel(index);
+    const sourceFields = previous.querySelectorAll("input");
+    next.querySelectorAll("input").forEach((field, position) => {
+      field.id = field.id.replace(/\d+$/, String(index));
+      field.value = sourceFields[position].value;
+    });
+    yearForms.append(next);
+  }
+  yearCount = count;
+  Array.from(yearForms.children).forEach((form, year) => {
+    form.hidden = year >= yearCount;
+  });
+  document.getElementById("year-count").textContent = yearCount;
+  document.getElementById("remove-year").disabled = yearCount === 1;
+
+  const selected = Math.min(Number(resultYear.value) || 1, yearCount);
+  resultYear.replaceChildren(...Array.from({length: yearCount}, (_, year) =>
+    new Option("Tahun " + (year + 1) + " · " + yearLabel(year), String(year + 1))
+  ));
+  resultYear.value = String(selected);
+  render();
+}
+
 function render() {
   const area = read("luas",true);
   const annualRent = read("rent0");
   const rentText = document.getElementById("rent0").value;
-  for (let index = 1; index < 4; index++) {
+  for (let index = 1; index < yearCount; index++) {
     document.getElementById("rent" + index).value = rentText;
   }
   const plantingRate = read("grow0");
-  const ratoonRate = read("grow1");
+  const ratoonRate = yearCount > 1 ? read("grow1") : 0;
   const ratoonText = document.getElementById("grow1").value;
-  for (let index = 2; index < 4; index++) {
+  for (let index = 2; index < yearCount; index++) {
     document.getElementById("grow" + index).value = ratoonText;
   }
   let cumulative = 0;
-  const years = Array.from({length:4},(_,i)=>{
+  const years = Array.from({length:yearCount},(_,i)=>{
     const input = {rent: annualRent, grow: i === 0 ? plantingRate : ratoonRate};
     for (const key of ["yield","price","haul","other"]) input[key] = read(key+i,key==="yield");
     const year = project(area,input);
@@ -163,27 +201,34 @@ function render() {
   for (const key of ["profit","revenue","cost"]) totals[key] = years.reduce((sum,year)=>sum+year[key],0);
   const bounded = value => value === null || Number.isSafeInteger(Math.round(value));
   const valid = years.every(year=>Object.values(year).every(bounded)) && Object.values(totals).every(bounded);
-  const bad = document.querySelector('input[aria-invalid="true"]');
+  const bad = document.querySelector('input[aria-invalid="true"]:not([hidden] *)');
   document.getElementById("notice").textContent = bad ? "Periksa " + bad.labels[0].textContent.trim() + (bad.closest("details") ? " pada " + bad.closest("details").querySelector("summary").textContent : "") + ". Gunakan angka positif atau nol dan rupiah penuh." : valid ? "" : "Nilai perhitungan terlalu besar.";
   for (const [key,value] of Object.entries(totals)) document.getElementById(key).textContent = valid ? uang.format(value) : "—";
+  document.getElementById("year-head").innerHTML = '<th scope="col">Komponen</th>' +
+    years.map((_, index) => '<th class="year-column" scope="col">Tahun ' + (index + 1) + '</th>').join("");
   document.getElementById("rows").innerHTML = rows.map(([label,key])=>{
     const cells = years.map(year=>{
       const v = year[key];
       const display = !valid || v === null ? "—" : (key === "tons" ? angka : uang).format(v);
-      return '<td class="'+(valid && v<0 ? "negative" : "")+'">'+display+'</td>';
+      return '<td class="year-column '+(valid && v<0 ? "negative" : "")+'">'+display+'</td>';
     }).join("");
     return '<tr class="'+(["profit","cumulative"].includes(key) ? "strong" : "")+'"><th scope="row">'+label+'</th>'+cells+'</tr>';
   }).join("");
+  showResultYear();
 }
-const resultYear = document.getElementById("result-year");
-const projectionTable = document.getElementById("projection-table");
 
 function showResultYear() {
-  projectionTable.dataset.year = resultYear.value;
+  const selected = Number(resultYear.value) - 1;
+  document.querySelectorAll("#projection-table tr").forEach(row => {
+    Array.from(row.querySelectorAll(".year-column")).forEach((cell, index) => {
+      cell.classList.toggle("selected-year", index === selected);
+    });
+  });
 }
 
 resultYear.addEventListener("change", showResultYear);
 document.addEventListener("input",render);
-showResultYear();
-render();
+document.getElementById("add-year").addEventListener("click", () => resizeProjection(yearCount + 1));
+document.getElementById("remove-year").addEventListener("click", () => resizeProjection(yearCount - 1));
+resizeProjection(yearCount);
 </script></body></html>
