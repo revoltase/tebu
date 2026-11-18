@@ -30,6 +30,47 @@ tr.strong{font-weight:700;background:#eff3e7}.negative{color:#9b321e}
 #notice{color:#982d19}footer{margin:16px 2px;color:var(--muted);font-size:.92rem}
 @media(max-width:700px){main{padding:24px 14px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{grid-template-columns:1fr 1fr;padding:20px}.hero>div:first-child{grid-column:1/-1}section{padding:16px}td,th{padding:8px;font-size:.88rem}}
 @media(max-width:400px){.grid{grid-template-columns:1fr}}
+
+body { background: #f1f5f2; }
+main { max-width: 1120px; }
+header { padding: clamp(24px, 5vw, 52px); background: #e2eee7; border: 1px solid #cfdfd4; border-radius: 22px; }
+header p { margin-bottom: 0; }
+.hero { background: #143e32; gap: 14px; }
+.hero > div { min-width: 0; padding: 12px 14px; background: #ffffff0d; border-radius: 12px; }
+section { background: #fff; border-color: #dbe5de; box-shadow: 0 3px 14px #10362908; }
+details { border: 1px solid #dbe5de; border-radius: 10px; padding: 0 14px; }
+details[open] { background: #f6f9f6; }
+summary { min-height: 48px; padding: 12px 0; }
+input { min-height: 46px; font-size: 16px; }
+input[readonly] { background: #edf2ee; border-color: #c8d5cc; color: #426153; }
+select { display: block; width: 100%; min-height: 46px; margin: 6px 0 12px; padding: 8px 12px; font: inherit; font-size: 16px; color: inherit; background: #fff; border: 1px solid #91a192; border-radius: 8px; }
+select:focus-visible { outline: 3px solid #799d60; outline-offset: 2px; }
+.year-picker { display: none; }
+th:first-child { background: inherit; }
+thead { background: #edf4ef; }
+#notice:empty { display: none; }
+@media (max-width: 760px) {
+  main { padding-top: 14px; }
+  .hero { margin: 14px 0; padding: 12px; gap: 8px; }
+  .hero > div:first-child { grid-column: 1 / -1; }
+  .hero { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .amount { font-size: clamp(1rem, 4.5vw, 1.5rem); }
+  .hero > div:first-child .amount { font-size: clamp(1.5rem, 7vw, 2.4rem); }
+  .hero span { font-size: .83rem; }
+  .area { max-width: none; }
+  .year-picker { display: block; }
+  table { table-layout: fixed; white-space: normal; }
+  th:first-child { width: 54%; position: static; }
+  td { overflow-wrap: anywhere; }
+  :is(th, td):not(:first-child) { display: none; }
+  [data-year="1"] tr > :nth-child(2),
+  [data-year="2"] tr > :nth-child(3),
+  [data-year="3"] tr > :nth-child(4),
+  [data-year="4"] tr > :nth-child(5) { display: table-cell; }
+}
+@media (max-width: 450px) {
+  .grid { grid-template-columns: 1fr; gap: 12px; }
+}
 </style>
 </head>
 <body><main>
@@ -66,7 +107,8 @@ tr.strong{font-weight:700;background:#eff3e7}.negative{color:#9b321e}
 <label>Biaya tambahan <small>Rp/kebun</small><input id="other3" inputmode="numeric" value="0"></label></div></details>
 <p role="status" id="notice"></p></section>
 <section><h2>Hasil per tahun</h2><p>Semua nilai rupiah mencakup seluruh luas kebun. Harga impas menunjukkan harga jual per ton yang menutup biaya tahun tersebut.</p>
-<div class="scroll" tabindex="0" aria-label="Rincian proyeksi, geser untuk melihat semua tahun"><table><thead><tr><th scope="col">Komponen</th><th scope="col">Tahun 1</th><th scope="col">Tahun 2</th><th scope="col">Tahun 3</th><th scope="col">Tahun 4</th></tr></thead><tbody id="rows"></tbody></table></div>
+<label class="year-picker" for="result-year">Tampilkan hasil tahun<select id="result-year"><option value="1">Tahun 1 · Tanam baru</option><option value="2">Tahun 2 · Keprasan 1</option><option value="3">Tahun 3 · Keprasan 2</option><option value="4">Tahun 4 · Keprasan 3</option></select></label>
+<div class="scroll" id="projection-table" data-year="1" tabindex="0" aria-label="Rincian proyeksi"><table><thead><tr><th scope="col">Komponen</th><th scope="col">Tahun 1</th><th scope="col">Tahun 2</th><th scope="col">Tahun 3</th><th scope="col">Tahun 4</th></tr></thead><tbody id="rows"></tbody></table></div>
 </section><footer>Simulasi memakai satu panen per tahun dan luas lahan tetap. Surplus dihitung dari penjualan dikurangi biaya yang diisi. Untuk memasukkan bunga, pajak, atau pengeluaran lain, tambahkan nilainya pada biaya tambahan tahun terkait.</footer>
 </main>
 <script>
@@ -127,6 +169,15 @@ function render() {
     return '<tr class="'+(["profit","cumulative"].includes(key) ? "strong" : "")+'"><th scope="row">'+label+'</th>'+cells+'</tr>';
   }).join("");
 }
+const resultYear = document.getElementById("result-year");
+const projectionTable = document.getElementById("projection-table");
+
+function showResultYear() {
+  projectionTable.dataset.year = resultYear.value;
+}
+
+resultYear.addEventListener("change", showResultYear);
 document.addEventListener("input",render);
+showResultYear();
 render();
 </script></body></html>
