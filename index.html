@@ -89,19 +89,19 @@ thead { background: #edf4ef; }
 <label>Biaya tambahan <small>Rp/kebun</small><input id="other0" inputmode="numeric" value="0"></label></div></details>
 <details ><summary>Tahun 2 · Keprasan 1</summary><div class="grid"><label>Hasil panen <small>ton/ha</small><input id="yield1" inputmode="decimal" value="85"></label>
 <label>Harga jual tebu <small>Rp/ton</small><input id="price1" inputmode="numeric" value="750.000"></label>
-<label>Borongan budidaya <small>Rp/ha</small><input id="grow1" inputmode="numeric" value="18.000.000"></label>
+<label>Borongan kepras <small>Rp/ha, berlaku untuk Tahun 2–4</small><input id="grow1" inputmode="numeric" value="10.000.000"></label>
 <label>Tebang, muat, dan angkut <small>Rp/ton</small><input id="haul1" inputmode="numeric" value="150.000"></label>
 <label>Sewa seluruh lahan <small>Rp/tahun</small><input id="rent1" readonly inputmode="numeric" value="200.000.000"></label>
 <label>Biaya tambahan <small>Rp/kebun</small><input id="other1" inputmode="numeric" value="0"></label></div></details>
 <details ><summary>Tahun 3 · Keprasan 2</summary><div class="grid"><label>Hasil panen <small>ton/ha</small><input id="yield2" inputmode="decimal" value="80"></label>
 <label>Harga jual tebu <small>Rp/ton</small><input id="price2" inputmode="numeric" value="750.000"></label>
-<label>Borongan budidaya <small>Rp/ha</small><input id="grow2" inputmode="numeric" value="18.000.000"></label>
+<label>Borongan kepras <small>Rp/ha, mengikuti Tahun 2</small><input id="grow2" readonly inputmode="numeric" value="10.000.000"></label>
 <label>Tebang, muat, dan angkut <small>Rp/ton</small><input id="haul2" inputmode="numeric" value="150.000"></label>
 <label>Sewa seluruh lahan <small>Rp/tahun</small><input id="rent2" readonly inputmode="numeric" value="200.000.000"></label>
 <label>Biaya tambahan <small>Rp/kebun</small><input id="other2" inputmode="numeric" value="0"></label></div></details>
 <details ><summary>Tahun 4 · Keprasan 3</summary><div class="grid"><label>Hasil panen <small>ton/ha</small><input id="yield3" inputmode="decimal" value="75"></label>
 <label>Harga jual tebu <small>Rp/ton</small><input id="price3" inputmode="numeric" value="750.000"></label>
-<label>Borongan budidaya <small>Rp/ha</small><input id="grow3" inputmode="numeric" value="18.000.000"></label>
+<label>Borongan kepras <small>Rp/ha, mengikuti Tahun 2</small><input id="grow3" readonly inputmode="numeric" value="10.000.000"></label>
 <label>Tebang, muat, dan angkut <small>Rp/ton</small><input id="haul3" inputmode="numeric" value="150.000"></label>
 <label>Sewa seluruh lahan <small>Rp/tahun</small><input id="rent3" readonly inputmode="numeric" value="200.000.000"></label>
 <label>Biaya tambahan <small>Rp/kebun</small><input id="other3" inputmode="numeric" value="0"></label></div></details>
@@ -134,7 +134,7 @@ function project(area, input) {
   return {tons,revenue,grow,harvest,rent,other:input.other,cost,profit,breakEven:tons > 0 ? Math.ceil(cost / tons) : null};
 }
 const rows = [
-  ["Produksi (ton)","tons"],["Penjualan","revenue"],["Borongan budidaya","grow"],
+  ["Produksi (ton)","tons"],["Penjualan","revenue"],["Borongan tanam baru / kepras","grow"],
   ["Tebang, muat, angkut","harvest"],["Sewa lahan","rent"],["Biaya tambahan","other"],
   ["Total biaya","cost"],["Surplus / defisit","profit"],["Surplus kumulatif","cumulative"],["Harga impas (Rp/ton)","breakEven"]
 ];
@@ -145,10 +145,16 @@ function render() {
   for (let index = 1; index < 4; index++) {
     document.getElementById("rent" + index).value = rentText;
   }
+  const plantingRate = read("grow0");
+  const ratoonRate = read("grow1");
+  const ratoonText = document.getElementById("grow1").value;
+  for (let index = 2; index < 4; index++) {
+    document.getElementById("grow" + index).value = ratoonText;
+  }
   let cumulative = 0;
   const years = Array.from({length:4},(_,i)=>{
-    const input = {rent: annualRent};
-    for (const key of ["yield","price","grow","haul","other"]) input[key] = read(key+i,key==="yield");
+    const input = {rent: annualRent, grow: i === 0 ? plantingRate : ratoonRate};
+    for (const key of ["yield","price","haul","other"]) input[key] = read(key+i,key==="yield");
     const year = project(area,input);
     cumulative += year.profit;
     return {...year,cumulative};
